@@ -2,7 +2,7 @@
 
 An open-source macOS driver, CLI, and Web Dashboard for the **VortexSeries MONO 65** mechanical keyboard (`VID 0x1A2C`, `PID 0x6180`).
 
-Developed by reverse-engineering the vendor's Windows driver (`DeviceDriver.exe` / `XYUI.dll`) with Ghidra to provide 100% native control on macOS without requiring Windows or virtual machines.
+Developed through clean-room reverse engineering of the vendor USB HID feature protocol (`DeviceDriver.exe` / `XYUI.dll`) with Ghidra to provide 100% native control on macOS without requiring Windows or virtual machines. Now powered by a high-performance **Rust** native backend.
 
 ![Dashboard Preview](preview.png)
 
@@ -14,23 +14,23 @@ Developed by reverse-engineering the vendor's Windows driver (`DeviceDriver.exe`
 - **Quick Blackout**: One-click RGB disable ("Turn Off RGB").
 - **Hardware Key Remapping**: Remap keys directly into keyboard firmware staging memory (supports up to 12 custom mappings).
 - **Standalone Tilde (`~`)**: Easily map `Home` or other keys to standalone backtick/tilde (`0x35`), which is typically hidden behind `Fn + Esc` on 65% layouts.
-- **Modern Hardware Dashboard**: Built with a clean, developer-focused dark interface powered by Font Awesome 6 icons (zero bloat, no external Electron overhead).
+- **1-Click Mac / Windows Mode Switch**: Instantly toggles between macOS (`Win` = Option, `Alt` = Command) and Windows layout directly from the dashboard header.
+- **Ultra-Lightweight Native Backend**: Rewritten in **Rust** using `hidapi` (direct Apple IOKit integration) and `axum` — consumes **~11 MB RAM** and **0.00% CPU** idle.
 - **Persistent Storage**: Active remaps are mirrored locally (`active_remaps.json`) for seamless recovery.
 
 ---
 
-## Mac vs Windows Mode Note
+## Hardware Mode Note (Fn Shortcuts)
 
-> **Note on OS Switch Mode**:
-> In the VortexSeries MONO 65 firmware, OS mode switching (Windows / macOS layout mapping for `Win` and `Alt`/`Option`) is handled at the **hardware microcontroller level** via key combos:
-> - **`Fn + A`**: Windows Mode (Win = GUI, Alt = Alt)
-> - **`Fn + S`**: macOS Mode (Win = Option, Alt = Command)
->
-> It does not require software frames over the USB lane. You can toggle this on the keyboard directly anytime.
+In the VortexSeries MONO 65 hardware, firmware-level OS switching can also be toggled directly via keyboard shortcuts:
+- **`Fn + A`**: Windows Mode (Win = GUI, Alt = Alt)
+- **`Fn + S`**: macOS Mode (Win = Option, Alt = Command)
+
+The Web Dashboard also provides a 1-click software toggle in the header that remaps the modifier keys to match either OS instantly.
 
 ---
 
-## How It Works & Architecture
+## Architecture & How It Works
 
 1. **Vendor Protocol Discovery**:
    - The keyboard enumerates multiple HID interfaces. The vendor configuration channel communicates over **Usage Page `0xFF00`** via 64-byte HID Feature Reports (`Report ID: 0x07`).
@@ -41,10 +41,9 @@ Developed by reverse-engineering the vendor's Windows driver (`DeviceDriver.exe`
    - For full low-level documentation, see [`protocol.md`](protocol.md).
 
 2. **Stack & Tools**:
-   - **Runtime**: Node.js (v18+)
-   - **Hardware Bridge**: [`node-hid`](https://github.com/node-hid/node-hid) with `HIDAsync` for macOS IOKit integration.
+   - **Backend**: Rust (`hidapi` + `axum` + `tokio`)
    - **Reverse Engineering Tools**: [Ghidra](https://ghidra-sre.org/) 12.1.4, Hex Fiend, IORegistryExplorer.
-   - **UI**: Lightweight embedded HTTP server delivering responsive HTML5 + CSS3 + Font Awesome 6.
+   - **Frontend UI**: Embedded HTML5 + CSS3 + Font Awesome 6 (zero Electron bloat).
 
 ---
 
@@ -57,29 +56,25 @@ Developed by reverse-engineering the vendor's Windows driver (`DeviceDriver.exe`
 
 ## Installation & Usage
 
-### 1. Prerequisites
-
-- macOS with Node.js installed (`node -v` >= 18)
-- Keyboard plugged in via USB (cable mode)
-
-### 2. Setup
+### Running the Native Rust Controller (Recommended)
 
 ```bash
 # Clone the repository
-git clone git@github-personal:rzlfathurrahman/mono65.git
-cd mono65
+git clone git@github-personal:rzlfathurrahman/vortexseries-mono65-macos.git
+cd vortexseries-mono65-macos/rust-mono65
 
-# Install dependencies
-npm install node-hid
-```
-
-### 3. Launching the Web Dashboard
-
-```bash
-node gui.js
+# Build and run
+cargo run --release
 ```
 
 Open your browser at **[http://127.0.0.1:7878](http://127.0.0.1:7878)**.
+
+### Running with Node.js (Alternative)
+
+```bash
+npm install node-hid
+node gui.js
+```
 
 ---
 
@@ -87,10 +82,19 @@ Open your browser at **[http://127.0.0.1:7878](http://127.0.0.1:7878)**.
 
 - No background telemetry, tracking, or external cloud dependencies.
 - Runs exclusively on local loopback interface (`127.0.0.1`).
-- Only accesses the vendor HID Usage Page (`0xFF00`), never monitoring or intercepting standard keystrokes (`Usage Page 0x01`).
+- Only accesses the vendor configuration Usage Page (`0xFF00`), never monitoring or intercepting standard keystrokes (`Usage Page 0x01`).
+
+---
+
+## Legal & Disclaimer
+
+- **Trademark Disclaimer**: "VortexSeries" and "MONO 65" are trademarks and trade names of their respective owners. This project is an independent, unofficial community tool created solely for hardware interoperability on macOS and is not affiliated with, endorsed by, or associated with VortexSeries.
+- **Reverse Engineering for Interoperability**: Protocol specifications were analyzed strictly for interoperability purposes (Fair Use / Directive 2009/24/EC). No proprietary vendor binaries (`.exe`, `.dll`) or copyrighted source code are hosted or distributed in this repository.
+- **Warranty Disclaimer**: This software is provided under the MIT License "as is", without warranty of any kind. Use at your own discretion.
 
 ---
 
 ## License
 
-MIT License. Developed for educational and hardware interoperability purposes.
+[MIT License](LICENSE) © 2026 Rizal Fathur Rahman.
+EOF
