@@ -24,7 +24,7 @@ Developed through clean-room reverse engineering of the vendor USB HID feature p
 
 In the VortexSeries MONO 65 hardware, firmware-level OS switching can also be toggled directly via keyboard shortcuts:
 - **`Fn + A`**: Windows Mode (Win = GUI, Alt = Alt)
-- **`Fn + S`**: macOS Mode (Win = Option, Alt = Command)
+- **`Fn + S`**: Windows Mode (Win = Option, Alt = Command)
 
 The Web Dashboard also provides a 1-click software toggle in the header that remaps the modifier keys to match either OS instantly.
 
