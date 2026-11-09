@@ -30,6 +30,18 @@ The Web Dashboard also provides a 1-click software toggle in the header that rem
 
 ---
 
+## Original Vendor Software & Source Reference
+
+This project was reverse-engineered from the official Windows vendor software:
+- **Product**: VortexSeries MONO 65 (Layout: `KB-K102`, Type: `101`)
+- **Hardware IDs**: `VID 0x1A2C`, `PID 0x6180`, Interface 1, Usage Page `0xFF00`
+- **Original Installer**: `MONO 65 setup.exe` (Version `1.0.3.6`)
+- **Installer SHA-256**: `7a8a485cda020afa44aa710ece6f3e4efc3b8ae4033796c9a3a139a9bfa07937`
+- **Official Brand**: [VortexSeries Indonesia](https://vortexseries.net/) (Official CS / Support WhatsApp: `+62 812-8852-3522`)
+- **Upstream Firmware / Upgrade Base**: `https://upgrade-1318931438.cos.ap-beijing.myqcloud.com/keyboard-680/680G/software/`
+
+---
+
 ## Architecture & How It Works
 
 1. **Vendor Protocol Discovery**:
