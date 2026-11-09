@@ -1,0 +1,23 @@
+{
+  "name": "vortexseries-mono65-macos",
+  "version": "1.0.0",
+  "description": "Reverse engineered macOS driver and dashboard for VortexSeries MONO 65 mechanical keyboard",
+  "main": "gui.js",
+  "scripts": {
+    "start": "node gui.js"
+  },
+  "keywords": [
+    "keyboard",
+    "vortexseries",
+    "mono65",
+    "reverse-engineering",
+    "macos",
+    "hid",
+    "driver"
+  ],
+  "author": "Rizal Fathur Rahman",
+  "license": "MIT",
+  "dependencies": {
+    "node-hid": "^3.1.2"
+  }
+}
