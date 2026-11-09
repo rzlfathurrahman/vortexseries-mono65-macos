@@ -10,6 +10,7 @@ use serde::{Deserialize, Serialize};
 use std::{
     fs,
     path::Path,
+    process::Command,
     sync::{Arc, Mutex},
     thread,
     time::Duration,
@@ -298,39 +299,39 @@ struct SetOSModeResponse {
     active_remaps: Vec<(String, String)>,
 }
 
+fn apply_macos_hidutil_os_mode(mode: &str) {
+    #[cfg(target_os = "macos")]
+    {
+        if mode == "mac" {
+            // Swap Left GUI (Win) 0x7000000E3 and Left Alt (Option) 0x7000000E2
+            let json = r#"{"UserKeyMapping":[{"HIDKeyboardModifierMappingSrc":30064771299,"HIDKeyboardModifierMappingDst":30064771298},{"HIDKeyboardModifierMappingSrc":30064771298,"HIDKeyboardModifierMappingDst":30064771299}]}"#;
+            let _ = Command::new("hidutil")
+                .args(["property", "--matching", r#"{"VendorID":6700,"ProductID":24960}"#, "--set", json])
+                .output();
+        } else {
+            // Reset mappings to empty
+            let json = r#"{"UserKeyMapping":[]}"#;
+            let _ = Command::new("hidutil")
+                .args(["property", "--matching", r#"{"VendorID":6700,"ProductID":24960}"#, "--set", json])
+                .output();
+        }
+    }
+}
+
 async fn handle_set_os_mode(
     State(state): State<AppState>,
     Json(req): Json<SetOSModeRequest>,
 ) -> (StatusCode, Json<SetOSModeResponse>) {
     let target_mode = if req.mode == "win" { "win" } else { "mac" };
 
-    let mut remaps = state.active_remaps.lock().unwrap();
-    remaps.retain(|p| p.0 != "0xe3" && p.0 != "0xe2");
+    // Apply native macOS IOHID modifier swap
+    apply_macos_hidutil_os_mode(target_mode);
 
-    if target_mode == "mac" {
-        remaps.push(("0xe3".to_string(), "0xe2".to_string()));
-        remaps.push(("0xe2".to_string(), "0xe3".to_string()));
-    }
+    let remaps = {
+        let r = state.active_remaps.lock().unwrap();
+        r.clone()
+    };
 
-    let mut parsed = Vec::new();
-    for (s, d) in remaps.iter() {
-        let src_u = u8::from_str_radix(s.trim_start_matches("0x"), 16).unwrap_or(0);
-        let dst_u = u8::from_str_radix(d.trim_start_matches("0x"), 16).unwrap_or(0);
-        parsed.push((src_u, dst_u));
-    }
-
-    let mut dev_lock = state.device.lock().unwrap();
-    if dev_lock.is_none() {
-        if let Ok(d) = open_device() {
-            *dev_lock = Some(d);
-        }
-    }
-
-    if let Some(ref dev) = *dev_lock {
-        let _ = send_remap(dev, &parsed);
-    }
-
-    let _ = fs::write("active_remaps.json", serde_json::to_string_pretty(&*remaps).unwrap());
     {
         let mut cfg = state.config.lock().unwrap();
         cfg.os_mode = target_mode.to_string();
@@ -341,8 +342,8 @@ async fn handle_set_os_mode(
         StatusCode::OK,
         Json(SetOSModeResponse {
             ok: true,
-            msg: format!("Switched to {} mode", target_mode.to_uppercase()),
-            active_remaps: remaps.clone(),
+            msg: format!("Switched to {} mode (Alt/Option and Win/Cmd swapped natively)", target_mode.to_uppercase()),
+            active_remaps: remaps,
         }),
     )
 }
@@ -370,6 +371,9 @@ async fn main() {
     }
 
     let initial_dev = open_device().ok();
+
+    // Apply OS mode at startup
+    apply_macos_hidutil_os_mode(&initial_config.os_mode);
 
     let state = AppState {
         device: Arc::new(Mutex::new(initial_dev)),
