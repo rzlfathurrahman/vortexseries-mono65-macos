@@ -1,0 +1,757 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>MONO 65 Dashboard</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <style>
+    * { box-sizing: border-box; }
+    :root {
+      --bg-base: #090d16;
+      --bg-surface: #111726;
+      --bg-card: #161e31;
+      --border: #232d45;
+      --border-focus: #3b82f6;
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+      --danger: #ef4444;
+      --danger-hover: #dc2626;
+      --success: #10b981;
+    }
+    body {
+      font: 13px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+      margin: 0;
+      background: var(--bg-base);
+      color: var(--text-main);
+      user-select: none;
+      -webkit-font-smoothing: antialiased;
+    }
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 28px;
+      background: var(--bg-surface);
+      border-bottom: 1px solid var(--border);
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .brand-icon {
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(37, 99, 235, 0.15);
+      border: 1px solid rgba(37, 99, 235, 0.3);
+      border-radius: 8px;
+      color: #60a5fa;
+      font-size: 15px;
+    }
+    .brand h1 {
+      font-size: 15px;
+      margin: 0;
+      font-weight: 600;
+      letter-spacing: -0.2px;
+      color: var(--text-main);
+    }
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      font-weight: 500;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: rgba(16, 185, 129, 0.12);
+      color: var(--success);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      margin-left: 8px;
+    }
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--success);
+      box-shadow: 0 0 6px var(--success);
+    }
+    nav {
+      display: flex;
+      gap: 4px;
+      background: var(--bg-base);
+      padding: 3px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+    }
+    nav button {
+      border: 0;
+      background: transparent;
+      color: var(--text-muted);
+      font-size: 12px;
+      font-weight: 500;
+      padding: 7px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.15s ease;
+    }
+    nav button:hover {
+      color: var(--text-main);
+    }
+    nav button.on {
+      background: var(--bg-card);
+      color: var(--text-main);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+      border: 1px solid var(--border);
+    }
+    main {
+      padding: 24px;
+      max-width: 980px;
+      margin: 0 auto;
+    }
+    .panel {
+      display: none;
+    }
+    .panel.on {
+      display: block;
+      animation: fadeIn 0.15s ease;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(3px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    .card-title {
+      font-size: 13px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+      margin: 0 0 16px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    /* Lighting grid */
+    .modes-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+    .mode-btn {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      border-radius: 8px;
+      padding: 10px 12px;
+      cursor: pointer;
+      font-size: 12px;
+      text-align: left;
+      transition: all 0.15s ease;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .mode-btn:hover {
+      background: #1c2740;
+      color: var(--text-main);
+      border-color: #3b82f6;
+    }
+    .mode-btn.on {
+      background: rgba(37, 99, 235, 0.2);
+      border-color: var(--primary);
+      color: #93c5fd;
+      font-weight: 600;
+    }
+    .mode-num {
+      font-size: 10px;
+      opacity: 0.5;
+      font-family: ui-monospace, monospace;
+    }
+
+    /* Controls */
+    .row {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .ctrl-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    label {
+      font-size: 12px;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+    select, button.btn {
+      font-size: 12px;
+      padding: 7px 12px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: var(--bg-card);
+      color: var(--text-main);
+      outline: none;
+      transition: all 0.15s ease;
+    }
+    select:focus {
+      border-color: var(--primary);
+    }
+    button.btn {
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      font-weight: 500;
+    }
+    button.btn-primary {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: #fff;
+    }
+    button.btn-primary:hover {
+      background: var(--primary-hover);
+    }
+    button.btn-danger {
+      background: rgba(239, 68, 68, 0.15);
+      border-color: rgba(239, 68, 68, 0.35);
+      color: #fca5a5;
+    }
+    button.btn-danger:hover {
+      background: var(--danger);
+      color: #fff;
+    }
+    button.btn-subtle {
+      background: transparent;
+      border-color: transparent;
+      color: var(--text-muted);
+    }
+    button.btn-subtle:hover {
+      background: var(--bg-card);
+      color: var(--text-main);
+      border-color: var(--border);
+    }
+
+    /* Keyboard overlay */
+    .kbwrap {
+      position: relative;
+      width: 600px;
+      background: #060910;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px;
+      margin: 0 auto 16px auto;
+    }
+    .kbwrap img {
+      display: block;
+      width: 600px;
+    }
+    #kbover {
+      position: absolute;
+      left: 10px;
+      top: 10px;
+      width: 600px;
+      height: 220px;
+    }
+    #kbover button {
+      position: absolute;
+      border: 1px solid transparent;
+      background: transparent;
+      cursor: pointer;
+      border-radius: 4px;
+      transition: all 0.1s ease;
+    }
+    #kbover button:hover {
+      border-color: var(--primary);
+      background: rgba(37, 99, 235, 0.25);
+    }
+    #kbover button.src {
+      border-color: #f59e0b;
+      background: rgba(245, 158, 11, 0.35);
+      box-shadow: 0 0 8px rgba(245, 158, 11, 0.6);
+    }
+    #kbover button.has-remap {
+      border-color: var(--success);
+      background: rgba(16, 185, 129, 0.25);
+    }
+    #kbover button.has-remap::after {
+      content: '';
+      position: absolute;
+      top: 3px;
+      right: 3px;
+      width: 4px;
+      height: 4px;
+      background: var(--success);
+      border-radius: 50%;
+    }
+
+    /* Multimedia / shortcuts */
+    .funcs-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+      gap: 8px;
+    }
+    .funcs-grid button {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      height: 64px;
+      padding: 6px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--bg-card);
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 11px;
+      transition: all 0.15s ease;
+    }
+    .funcs-grid button i {
+      font-size: 14px;
+      color: #93c5fd;
+    }
+    .funcs-grid button:hover {
+      border-color: var(--primary);
+      color: var(--text-main);
+      background: #1c2740;
+    }
+
+    /* Remap table */
+    .remap-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+    .remap-table th {
+      text-align: left;
+      padding: 10px 12px;
+      background: var(--bg-card);
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border);
+      font-weight: 500;
+    }
+    .remap-table td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    .badge {
+      display: inline-block;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: ui-monospace, SFMono-Regular, monospace;
+      font-size: 11px;
+      background: var(--bg-base);
+      border: 1px solid var(--border);
+    }
+    .badge.src {
+      color: #fbbf24;
+      border-color: rgba(251, 191, 36, 0.4);
+    }
+    .badge.dst {
+      color: #34d399;
+      border-color: rgba(52, 211, 153, 0.4);
+    }
+
+    /* Log terminal */
+    #log {
+      font: 11px/1.6 ui-monospace, SFMono-Regular, Menlo, monospace;
+      color: #34d399;
+      background: #060910;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      max-height: 100px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <div class="brand-icon"><i class="fa-solid fa-keyboard"></i></div>
+      <div>
+        <h1>VortexSeries MONO 65</h1>
+      </div>
+      <span class="status-badge" id="status-badge"><span class="status-dot"></span> Connected</span>
+      <div class="os-selector" style="display: flex; gap: 4px; margin-left: 12px; background: var(--bg-base); padding: 2px; border-radius: 6px; border: 1px solid var(--border);">
+        <button id="btn-mode-mac" class="btn btn-subtle" style="padding: 3px 10px; font-size: 11px; border-radius: 4px;" onclick="switchOSMode('mac')">
+          <i class="fa-brands fa-apple"></i> Mac
+        </button>
+        <button id="btn-mode-win" class="btn btn-subtle" style="padding: 3px 10px; font-size: 11px; border-radius: 4px;" onclick="switchOSMode('win')">
+          <i class="fa-brands fa-windows"></i> Win
+        </button>
+      </div>
+    </div>
+    <nav>
+      <button id="t-light" class="on" onclick="tab('light')"><i class="fa-solid fa-lightbulb"></i> RGB Backlight</button>
+      <button id="t-key" onclick="tab('key')"><i class="fa-solid fa-sliders"></i> Key Remapping</button>
+    </nav>
+  </header>
+
+  <main>
+    <!-- LIGHTING PANEL -->
+    <section class="panel on" id="p-light">
+      <div class="card">
+        <div class="card-title">
+          <span>Lighting Effects</span>
+          <button class="btn btn-danger" onclick="turnLightOff()"><i class="fa-solid fa-power-off"></i> Turn Off RGB</button>
+        </div>
+        <div class="modes-grid" id="modes-grid"></div>
+
+        <div class="row" style="border-top: 1px solid var(--border); padding-top: 16px;">
+          <div class="ctrl-group">
+            <label for="speed"><i class="fa-solid fa-gauge-high"></i> Speed</label>
+            <select id="speed">
+              <option value="1">1 (Slow)</option>
+              <option value="2" selected>2 (Medium)</option>
+              <option value="3">3 (Fast)</option>
+              <option value="4">4 (Very Fast)</option>
+            </select>
+          </div>
+          <div class="ctrl-group">
+            <label for="bri"><i class="fa-solid fa-sun"></i> Brightness</label>
+            <select id="bri">
+              <option value="1">Level 1 (25%)</option>
+              <option value="2">Level 2 (50%)</option>
+              <option value="3">Level 3 (75%)</option>
+              <option value="4" selected>Level 4 (100%)</option>
+            </select>
+          </div>
+          <button class="btn btn-primary" onclick="applyPreset()"><i class="fa-solid fa-check"></i> Apply Effect</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- KEY REMAP PANEL -->
+    <section class="panel" id="p-key">
+      <div class="card">
+        <div class="card-title">
+          <span>Keyboard Layout (65%)</span>
+          <span id="remap-slots" style="font-weight: normal; font-size: 11px;">0 / 12 Slots Used</span>
+        </div>
+        <p style="margin: 0 0 12px 0; color: var(--text-muted); font-size: 12px;">
+          Click a physical key (orange) then click a destination key or action below.
+        </p>
+        <div class="kbwrap">
+          <img src="/kb_102.png" alt="Layout">
+          <div id="kbover"></div>
+        </div>
+        <div id="selection-bar" style="min-height: 22px; font-size: 12px; color: #60a5fa; font-weight: 500;">
+          Select a key on the layout above to begin.
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Multimedia & System Actions</div>
+        <div class="funcs-grid" id="funcs-grid"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">
+          <span>Active Remap Table</span>
+          <button class="btn btn-subtle" style="font-size: 11px;" onclick="clearAllRemaps()"><i class="fa-solid fa-trash-can"></i> Reset All</button>
+        </div>
+        <table class="remap-table">
+          <thead>
+            <tr>
+              <th>Physical Key</th>
+              <th></th>
+              <th>Assigned Action</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="remap-tbody">
+            <tr><td colspan="4" style="color: var(--text-muted); text-align: center; padding: 14px;">No custom remaps assigned (factory defaults).</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- STATUS / LOG -->
+    <div class="card" style="padding: 14px 18px;">
+      <div style="font-size: 11px; font-weight: 600; color: var(--text-muted); display: flex; justify-content: space-between; margin-bottom: 8px;">
+        <span><i class="fa-solid fa-terminal"></i> HARDWARE LOG</span>
+        <a href="javascript:void(0)" onclick="$('log').textContent=''" style="color: var(--text-muted); text-decoration: none;">Clear</a>
+      </div>
+      <div id="log">Device communication channel ready.</div>
+    </div>
+  </main>
+
+  <script>
+    const FUNCS = [["0x35","` ~ (Tilde)","fa-solid fa-tilde"],["0xea","Vol +","fa-solid fa-volume-high"],["0xe9","Vol −","fa-solid fa-volume-low"],["0xeb","Mute","fa-solid fa-volume-xmark"],["0xee","Play/Pause","fa-solid fa-play"],["0xef","Next Track","fa-solid fa-forward-step"],["0xed","Prev Track","fa-solid fa-backward-step"],["0xec","Stop","fa-solid fa-stop"],["0xe8","Multimedia","fa-solid fa-photo-film"],["0xf0","Email","fa-solid fa-envelope"],["0xf1","Web Home","fa-solid fa-house"],["0xf2","Calculator","fa-solid fa-calculator"],["0xf6","Web Refresh","fa-solid fa-rotate-right"],["0xf5","Web Stop","fa-solid fa-circle-xmark"],["0xf8","Favorites","fa-solid fa-star"],["0xf9","My PC","fa-solid fa-desktop"]];
+    const KEYS = [{"code":"0x3a","name":"F1","x":86,"y":23,"w":30,"h":30},{"code":"0x3b","name":"F2","x":117,"y":23,"w":30,"h":30},{"code":"0x3c","name":"F3","x":146,"y":23,"w":30,"h":30},{"code":"0x3d","name":"F4","x":176,"y":23,"w":30,"h":30},{"code":"0x3e","name":"F5","x":222,"y":23,"w":30,"h":30},{"code":"0x3f","name":"F6","x":252,"y":23,"w":30,"h":30},{"code":"0x40","name":"F7","x":282,"y":23,"w":30,"h":30},{"code":"0x41","name":"F8","x":313,"y":23,"w":30,"h":30},{"code":"0x42","name":"F9","x":355,"y":23,"w":30,"h":30},{"code":"0x43","name":"F10","x":385,"y":23,"w":30,"h":30},{"code":"0x44","name":"F11","x":415,"y":23,"w":30,"h":30},{"code":"0x45","name":"F12","x":445,"y":23,"w":30,"h":30},{"code":"0x46","name":"Print","x":484,"y":23,"w":30,"h":30},{"code":"0x47","name":"Scroll","x":514,"y":23,"w":30,"h":30},{"code":"0x48","name":"Pause","x":544,"y":23,"w":30,"h":30},{"code":"0x35","name":"`~","x":27,"y":65,"w":30,"h":30},{"code":"0x29","name":"Esc","x":24,"y":23,"w":33,"h":33},{"code":"0x1e","name":"1!","x":59,"y":23,"w":33,"h":33},{"code":"0x1f","name":"2@","x":91,"y":23,"w":33,"h":33},{"code":"0x20","name":"3#","x":125,"y":23,"w":33,"h":33},{"code":"0x21","name":"4$","x":161,"y":23,"w":33,"h":33},{"code":"0x22","name":"5%","x":194,"y":23,"w":33,"h":33},{"code":"0x23","name":"6^","x":228,"y":23,"w":33,"h":33},{"code":"0x24","name":"7&","x":262,"y":23,"w":33,"h":33},{"code":"0x25","name":"8*","x":296,"y":23,"w":33,"h":33},{"code":"0x26","name":"9(","x":329,"y":23,"w":33,"h":33},{"code":"0x27","name":"0)","x":363,"y":23,"w":33,"h":33},{"code":"0x2d","name":"-_","x":398,"y":23,"w":33,"h":33},{"code":"0x2e","name":"=+","x":431,"y":23,"w":33,"h":33},{"code":"0x2a","name":"Backspace","x":467,"y":23,"w":63,"h":33},{"code":"0x49","name":"Ins","x":482,"y":23,"w":33,"h":33},{"code":"0x4a","name":"Home","x":535,"y":23,"w":33,"h":33},{"code":"0x53","name":"NumL","x":0,"y":0,"w":0,"h":0},{"code":"0x54","name":"/","x":0,"y":0,"w":0,"h":0},{"code":"0x55","name":"*","x":0,"y":0,"w":0,"h":0},{"code":"0x56","name":"-","x":0,"y":0,"w":0,"h":0},{"code":"0x2b","name":"Tab","x":24,"y":58,"w":49,"h":33},{"code":"0x14","name":"Q","x":76,"y":58,"w":33,"h":33},{"code":"0x1a","name":"W","x":111,"y":58,"w":33,"h":33},{"code":"0x08","name":"E","x":145,"y":58,"w":33,"h":33},{"code":"0x15","name":"R","x":178,"y":58,"w":33,"h":33},{"code":"0x17","name":"T","x":209,"y":58,"w":33,"h":33},{"code":"0x1c","name":"Y","x":244,"y":58,"w":33,"h":33},{"code":"0x18","name":"U","x":279,"y":58,"w":33,"h":33},{"code":"0x0c","name":"I","x":313,"y":58,"w":33,"h":33},{"code":"0x12","name":"O","x":347,"y":58,"w":33,"h":33},{"code":"0x13","name":"P","x":382,"y":58,"w":33,"h":33},{"code":"0x2f","name":"[{","x":414,"y":58,"w":33,"h":33},{"code":"0x30","name":"]}","x":450,"y":58,"w":33,"h":33},{"code":"0x31","name":"\\|","x":481,"y":58,"w":49,"h":33},{"code":"0x4c","name":"Del","x":535,"y":58,"w":33,"h":33},{"code":"0x4d","name":"End","x":535,"y":58,"w":33,"h":33},{"code":"0x4e","name":"PgDn","x":545,"y":93,"w":30,"h":30},{"code":"0x5f","name":"7","x":0,"y":0,"w":0,"h":0},{"code":"0x60","name":"8","x":0,"y":0,"w":0,"h":0},{"code":"0x61","name":"9","x":0,"y":0,"w":0,"h":0},{"code":"0x57","name":"+","x":0,"y":0,"w":0,"h":0},{"code":"0x39","name":"Caps","x":24,"y":92,"w":63,"h":33},{"code":"0x4","name":"A","x":84,"y":92,"w":33,"h":33},{"code":"0x16","name":"S","x":116,"y":92,"w":33,"h":33},{"code":"0x7","name":"D","x":151,"y":92,"w":33,"h":33},{"code":"0x9","name":"F","x":183,"y":92,"w":33,"h":33},{"code":"0xa","name":"G","x":219,"y":92,"w":33,"h":33},{"code":"0xb","name":"H","x":253,"y":92,"w":33,"h":33},{"code":"0xd","name":"J","x":287,"y":92,"w":33,"h":33},{"code":"0xe","name":"K","x":323,"y":92,"w":33,"h":33},{"code":"0xf","name":"L","x":353,"y":92,"w":33,"h":33},{"code":"0x33","name":";:","x":389,"y":92,"w":33,"h":33},{"code":"0x34","name":"&apos;&quot;","x":422,"y":92,"w":33,"h":33},{"code":"0x28","name":"Enter","x":458,"y":92,"w":74,"h":33},{"code":"0x4b","name":"PgUp","x":536,"y":92,"w":33,"h":33},{"code":"0x5c","name":"4","x":0,"y":0,"w":0,"h":0},{"code":"0x5d","name":"5","x":0,"y":0,"w":0,"h":0},{"code":"0x5e","name":"6","x":0,"y":0,"w":0,"h":0},{"code":"0xe1","name":"L_Shift","x":24,"y":127,"w":78,"h":33},{"code":"0x1d","name":"Z","x":100,"y":127,"w":33,"h":33},{"code":"0x1b","name":"X","x":135,"y":127,"w":33,"h":33},{"code":"0x6","name":"C","x":167,"y":127,"w":33,"h":33},{"code":"0x19","name":"V","x":202,"y":127,"w":33,"h":33},{"code":"0x5","name":"B","x":235,"y":127,"w":33,"h":33},{"code":"0x11","name":"N","x":269,"y":127,"w":33,"h":33},{"code":"0x10","name":"M","x":303,"y":127,"w":33,"h":33},{"code":"0x36","name":",&lt;","x":337,"y":127,"w":33,"h":33},{"code":"0x37","name":".&gt;","x":369,"y":127,"w":33,"h":33},{"code":"0x38","name":"/?","x":405,"y":127,"w":33,"h":33},{"code":"0xe5","name":"R_Shift","x":440,"y":127,"w":58,"h":33},{"code":"0x52","name":"↑","x":499,"y":127,"w":33,"h":33},{"code":"0x4e","name":"PgDn","x":536,"y":127,"w":33,"h":33},{"code":"0x59","name":"1","x":0,"y":0,"w":0,"h":0},{"code":"0x5a","name":"2","x":0,"y":0,"w":0,"h":0},{"code":"0x5b","name":"3","x":0,"y":0,"w":0,"h":0},{"code":"0x58","name":"Enter","x":0,"y":0,"w":0,"h":0},{"code":"0xe0","name":"L_Ctrl","x":24,"y":159,"w":44,"h":34},{"code":"0xe3","name":"Win","x":67,"y":159,"w":44,"h":34},{"code":"0xe2","name":"Alt","x":109,"y":159,"w":44,"h":34},{"code":"0x2c","name":"Space","x":152,"y":159,"w":212,"h":34},{"code":"0xe6","name":"Alt","x":366,"y":159,"w":36,"h":34},{"code":"0xff","name":"Fn","x":406,"y":159,"w":44,"h":34},{"code":"0x65","name":"APP","x":401,"y":159,"w":34,"h":34},{"code":"0xe4","name":"R_Ctrl","x":437,"y":159,"w":34,"h":34},{"code":"0x50","name":"←","x":467,"y":159,"w":34,"h":34},{"code":"0x51","name":"↓","x":500,"y":159,"w":34,"h":34},{"code":"0x4f","name":"→","x":535,"y":159,"w":34,"h":34},{"code":"0x62","name":"0","x":0,"y":0,"w":0,"h":0},{"code":"0x63","name":".","x":0,"y":0,"w":0,"h":0}];
+    const LIGHT_MODES = [{"id":1,"name":"Steady"},{"id":2,"name":"Breathing"},{"id":3,"name":"Press & Destroy"},{"id":4,"name":"Neon Stream"},{"id":5,"name":"Streamer"},{"id":6,"name":"Flowing Light & Color"},{"id":7,"name":"Dripping Ripples"},{"id":8,"name":"Brilliant Point"},{"id":9,"name":"Flash Away"},{"id":10,"name":"Shadow Disappear"},{"id":11,"name":"Ripples Shining"},{"id":12,"name":"Rich & Honored"},{"id":13,"name":"Marquee Effect"},{"id":14,"name":"Rotating Storm"},{"id":15,"name":"Serpentine Race"},{"id":16,"name":"Stars Twinkle"},{"id":17,"name":"Retro Snake"},{"id":18,"name":"Diagonal Shift"},{"id":19,"name":"Sine Wave"}];
+    let activeRemaps = [["0x4a","0x35"]];
+    let appConfig = {"osMode":"mac"};
+
+    const $ = id => document.getElementById(id);
+    const log = t => {
+      const el = $('log');
+      const time = new Date().toLocaleTimeString();
+      el.textContent = '[' + time + '] ' + t + '\n' + el.textContent;
+    };
+
+    function tab(id) {
+      for (const p of ['light', 'key']) {
+        $('p-' + p).classList.toggle('on', p === id);
+        $('t-' + p).classList.toggle('on', p === id);
+      }
+    }
+
+    // Populate lighting modes
+    let currentMode = 1;
+    const modesGrid = $('modes-grid');
+    modesGrid.innerHTML = LIGHT_MODES.map(m =>
+      '<button class="mode-btn ' + (m.id === 1 ? 'on' : '') + '" onclick="selectMode(this, ' + m.id + ')">' +
+      '<span>' + m.name + '</span>' +
+      '<span class="mode-num">#' + String(m.id).padStart(2, '0') + '</span>' +
+      '</button>'
+    ).join('');
+
+    function selectMode(btn, m) {
+      currentMode = m;
+      for (const b of modesGrid.children) b.classList.remove('on');
+      btn.classList.add('on');
+    }
+
+    async function api(endpoint, body) {
+      try {
+        const res = await fetch('/api/' + endpoint, {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: body ? JSON.stringify(body) : '{}'
+        });
+        const data = await res.json();
+        if (data.ok) {
+          log(data.msg || 'Success');
+        } else {
+          log('ERR: ' + (data.err || 'Failed'));
+        }
+        return data;
+      } catch (e) {
+        log('ERR: Connection lost — ' + e.message);
+      }
+    }
+
+    function applyPreset() {
+      api('preset', {
+        mode: currentMode,
+        speed: +$('speed').value,
+        bri: +$('bri').value
+      });
+    }
+
+    function turnLightOff() {
+      api('preset', {
+        mode: currentMode,
+        speed: 1,
+        bri: 0
+      });
+      log('Sent turn-off signal (brightness 0)...');
+    }
+
+    // Key overlays
+    const over = $('kbover');
+    const keyElements = {};
+    for (const k of KEYS) {
+      const b = document.createElement('button');
+      b.style.cssText = 'left:' + k.x + 'px;top:' + k.y + 'px;width:' + k.w + 'px;height:' + k.h + 'px';
+      b.title = k.name + ' (' + k.code + ')';
+      b.onclick = () => onKeyClick(k, b);
+      over.appendChild(b);
+      keyElements[k.code] = b;
+    }
+
+    let selectedSrc = null;
+
+    function getKeyName(code) {
+      const c = (code || '').toLowerCase();
+      const k = KEYS.find(x => x.code === c);
+      if (k) return k.name;
+      const f = FUNCS.find(x => x[0].toLowerCase() === c);
+      if (f) return f[1];
+      return code;
+    }
+
+    function onKeyClick(k, b) {
+      if (!selectedSrc) {
+        selectedSrc = k;
+        b.classList.add('src');
+        $('selection-bar').innerHTML = 'Selected: <strong>' + k.name + ' (' + k.code + ')</strong> — Click a destination key or action.';
+      } else {
+        if (b.classList.contains('src')) {
+          clearSelection();
+          return;
+        }
+        assignRemap(selectedSrc.code, k.code);
+        clearSelection();
+      }
+    }
+
+    function clearSelection() {
+      if (selectedSrc && keyElements[selectedSrc.code]) {
+        keyElements[selectedSrc.code].classList.remove('src');
+      }
+      selectedSrc = null;
+      $('selection-bar').textContent = 'Select a key on the layout above to begin.';
+    }
+
+    // Populate multimedia / function palette using FontAwesome icons
+    const funcsGrid = $('funcs-grid');
+    funcsGrid.innerHTML = '';
+    for (const f of FUNCS) {
+      const btn = document.createElement('button');
+      btn.title = f[1] + ' (' + f[0] + ')';
+      btn.innerHTML = '<i class="' + f[2] + '"></i><span>' + f[1] + '</span>';
+      btn.onclick = () => pickFunc(f[0]);
+      funcsGrid.appendChild(btn);
+    }
+
+    function pickFunc(code) {
+      if (!selectedSrc) {
+        log('Notice: Select a source key on the keyboard first.');
+        return;
+      }
+      const srcCode = selectedSrc.code;
+      clearSelection();
+      assignRemap(srcCode, code);
+    }
+
+    async function assignRemap(src, dst) {
+      src = src.toLowerCase();
+      dst = dst.toLowerCase();
+
+      activeRemaps = activeRemaps.filter(p => p[0] !== src);
+      if (src !== dst) {
+        if (activeRemaps.length >= 12) {
+          log('ERR: Hardware limit reached (max 12 slots).');
+          return;
+        }
+        activeRemaps.push([src, dst]);
+      }
+
+      renderRemapTable();
+      await syncRemapsToDevice();
+    }
+
+    async function removeRemap(src) {
+      activeRemaps = activeRemaps.filter(p => p[0] !== src.toLowerCase());
+      renderRemapTable();
+      await syncRemapsToDevice();
+    }
+
+    async function clearAllRemaps() {
+      if (!confirm('Reset all keys to factory default?')) return;
+      activeRemaps = [];
+      renderRemapTable();
+      await syncRemapsToDevice();
+    }
+
+    async function syncRemapsToDevice() {
+      log('Writing ' + activeRemaps.length + ' remap entries to keyboard hardware...');
+      const res = await api('sync-remaps', { pairs: activeRemaps });
+      if (res && res.ok) {
+        renderRemapTable();
+      }
+    }
+
+    function renderRemapTable() {
+      const tbody = $('remap-tbody');
+      $('remap-slots').textContent = activeRemaps.length + ' / 12 Slots Used';
+
+      for (const k of KEYS) {
+        if (keyElements[k.code]) {
+          keyElements[k.code].classList.remove('has-remap');
+        }
+      }
+      for (const [src] of activeRemaps) {
+        if (keyElements[src]) {
+          keyElements[src].classList.add('has-remap');
+        }
+      }
+
+      if (activeRemaps.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" style="color: var(--text-muted); text-align: center; padding: 14px;">No custom remaps assigned (factory defaults).</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = '';
+      for (const [src, dst] of activeRemaps) {
+        const tr = document.createElement('tr');
+        const srcName = getKeyName(src);
+        const dstName = getKeyName(dst);
+        tr.innerHTML = '<td><span class="badge src">' + src + '</span> <strong>' + srcName + '</strong></td>' +
+          '<td style="color: var(--text-muted);"><i class="fa-solid fa-arrow-right"></i></td>' +
+          '<td><span class="badge dst">' + dst + '</span> <strong>' + dstName + '</strong></td>' +
+          '<td><button class="btn btn-subtle del-btn" style="padding: 2px 8px; font-size: 11px; color: #ef4444;"><i class="fa-solid fa-xmark"></i></button></td>';
+        tr.querySelector('.del-btn').onclick = () => removeRemap(src);
+        tbody.appendChild(tr);
+      }
+    }
+
+    function updateOSModeUI() {
+      const isMac = (appConfig.osMode || 'mac') === 'mac';
+      const btnMac = $('btn-mode-mac');
+      const btnWin = $('btn-mode-win');
+      if (isMac) {
+        btnMac.style.background = 'rgba(37, 99, 235, 0.25)';
+        btnMac.style.color = '#93c5fd';
+        btnMac.style.borderColor = 'var(--primary)';
+        btnWin.style.background = 'transparent';
+        btnWin.style.color = 'var(--text-muted)';
+        btnWin.style.borderColor = 'transparent';
+      } else {
+        btnWin.style.background = 'rgba(37, 99, 235, 0.25)';
+        btnWin.style.color = '#93c5fd';
+        btnWin.style.borderColor = 'var(--primary)';
+        btnMac.style.background = 'transparent';
+        btnMac.style.color = 'var(--text-muted)';
+        btnMac.style.borderColor = 'transparent';
+      }
+    }
+
+    async function switchOSMode(targetMode) {
+      if (appConfig.osMode === targetMode) return;
+      log('Switching keyboard layout to ' + targetMode.toUpperCase() + ' mode...');
+      const res = await api('set-os-mode', { mode: targetMode });
+      if (res && res.ok) {
+        appConfig.osMode = targetMode;
+        if (res.activeRemaps) activeRemaps = res.activeRemaps;
+        updateOSModeUI();
+        renderRemapTable();
+      }
+    }
+
+    updateOSModeUI();
+    renderRemapTable();
+
+    setInterval(async () => {
+      try {
+        const res = await fetch('/api/ping');
+        const data = await res.json();
+        $('status-badge').style.display = data.connected ? 'inline-flex' : 'none';
+      } catch (e) {}
+    }, 5000);
+  </script>
+</body>
+</html>
