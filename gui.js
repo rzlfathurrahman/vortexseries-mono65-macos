@@ -11,8 +11,8 @@ const PORT = 7878;
 const SKIN = path.join(__dirname, 'app/app/skins/theme1');
 const LAYOUT = path.join(__dirname, 'app/app/layouts/KB-K102.xml');
 const REMAPS_FILE = path.join(__dirname, 'active_remaps.json');
+const CONFIG_FILE = path.join(__dirname, 'config.json');
 
-// Read saved remaps if exists
 let activeRemaps = [];
 try {
   if (fs.existsSync(REMAPS_FILE)) {
@@ -22,11 +22,28 @@ try {
   activeRemaps = [];
 }
 
+let appConfig = { osMode: 'mac' };
+try {
+  if (fs.existsSync(CONFIG_FILE)) {
+    appConfig = Object.assign(appConfig, JSON.parse(fs.readFileSync(CONFIG_FILE, 'utf8')));
+  }
+} catch (e) {
+  appConfig = { osMode: 'mac' };
+}
+
 const saveRemaps = () => {
   try {
     fs.writeFileSync(REMAPS_FILE, JSON.stringify(activeRemaps, null, 2), 'utf8');
   } catch (e) {
     console.error('Failed to save remaps:', e.message);
+  }
+};
+
+const saveConfig = () => {
+  try {
+    fs.writeFileSync(CONFIG_FILE, JSON.stringify(appConfig, null, 2), 'utf8');
+  } catch (e) {
+    console.error('Failed to save config:', e.message);
   }
 };
 
@@ -483,6 +500,14 @@ const PAGE = `<!doctype html>
         <h1>VortexSeries MONO 65</h1>
       </div>
       <span class="status-badge" id="status-badge"><span class="status-dot"></span> Connected</span>
+      <div class="os-selector" style="display: flex; gap: 4px; margin-left: 12px; background: var(--bg-base); padding: 2px; border-radius: 6px; border: 1px solid var(--border);">
+        <button id="btn-mode-mac" class="btn btn-subtle" style="padding: 3px 10px; font-size: 11px; border-radius: 4px;" onclick="switchOSMode('mac')">
+          <i class="fa-brands fa-apple"></i> Mac
+        </button>
+        <button id="btn-mode-win" class="btn btn-subtle" style="padding: 3px 10px; font-size: 11px; border-radius: 4px;" onclick="switchOSMode('win')">
+          <i class="fa-brands fa-windows"></i> Win
+        </button>
+      </div>
     </div>
     <nav>
       <button id="t-light" class="on" onclick="tab('light')"><i class="fa-solid fa-lightbulb"></i> RGB Backlight</button>
@@ -584,6 +609,7 @@ const PAGE = `<!doctype html>
     const KEYS = ${JSON.stringify(KEYS)};
     const LIGHT_MODES = ${JSON.stringify(LIGHT_MODES)};
     let activeRemaps = ${JSON.stringify(activeRemaps)};
+    let appConfig = ${JSON.stringify(appConfig)};
 
     const $ = id => document.getElementById(id);
     const log = t => {
@@ -790,6 +816,40 @@ const PAGE = `<!doctype html>
       }
     }
 
+    function updateOSModeUI() {
+      const isMac = (appConfig.osMode || 'mac') === 'mac';
+      const btnMac = $('btn-mode-mac');
+      const btnWin = $('btn-mode-win');
+      if (isMac) {
+        btnMac.style.background = 'rgba(37, 99, 235, 0.25)';
+        btnMac.style.color = '#93c5fd';
+        btnMac.style.borderColor = 'var(--primary)';
+        btnWin.style.background = 'transparent';
+        btnWin.style.color = 'var(--text-muted)';
+        btnWin.style.borderColor = 'transparent';
+      } else {
+        btnWin.style.background = 'rgba(37, 99, 235, 0.25)';
+        btnWin.style.color = '#93c5fd';
+        btnWin.style.borderColor = 'var(--primary)';
+        btnMac.style.background = 'transparent';
+        btnMac.style.color = 'var(--text-muted)';
+        btnMac.style.borderColor = 'transparent';
+      }
+    }
+
+    async function switchOSMode(targetMode) {
+      if (appConfig.osMode === targetMode) return;
+      log('Switching keyboard layout to ' + targetMode.toUpperCase() + ' mode...');
+      const res = await api('set-os-mode', { mode: targetMode });
+      if (res && res.ok) {
+        appConfig.osMode = targetMode;
+        if (res.activeRemaps) activeRemaps = res.activeRemaps;
+        updateOSModeUI();
+        renderRemapTable();
+      }
+    }
+
+    updateOSModeUI();
     renderRemapTable();
 
     setInterval(async () => {
@@ -850,6 +910,35 @@ const server = http.createServer((req, res) => {
         busy = true;
 
         try {
+          if (req.method === 'POST' && u === '/api/set-os-mode') {
+            const targetMode = b.mode === 'win' ? 'win' : 'mac';
+            appConfig.osMode = targetMode;
+            saveConfig();
+
+            // Win: 0xe3 (Win) -> 0xe3, 0xe2 (Alt) -> 0xe2 (remove swap)
+            // Mac: 0xe3 (physical Win) -> 0xe2 (Alt/Option), 0xe2 (physical Alt) -> 0xe3 (Win/Cmd)
+            activeRemaps = activeRemaps.filter(p => p[0] !== '0xe3' && p[0] !== '0xe2');
+            if (targetMode === 'mac') {
+              activeRemaps.push(['0xe3', '0xe2']); // Win key sends Alt (Option)
+              activeRemaps.push(['0xe2', '0xe3']); // Alt key sends Win (Command)
+            }
+            saveRemaps();
+
+            const parsed = activeRemaps.map(([s, d]) => [parseInt(s, 16), parseInt(d, 16)]);
+            const resRemap = await m.remap(parsed);
+            if (resRemap && resRemap.err) {
+              return done(500, { err: 'OS mode switch warning: ' + JSON.stringify(resRemap.err) });
+            }
+
+            return done(200, {
+              ok: true,
+              msg: targetMode === 'mac'
+                ? 'Switched to macOS mode: Win is now Option, Alt is now Command (⌘).'
+                : 'Switched to Windows mode: Default Win/Alt key mapping restored.',
+              activeRemaps
+            });
+          }
+
           if (req.method === 'POST' && u === '/api/status') {
             return done(200, { ok: true, msg: 'status ' + JSON.stringify(await m.version()) });
           }
