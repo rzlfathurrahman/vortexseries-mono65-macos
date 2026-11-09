@@ -2,9 +2,9 @@
 
 An open-source macOS driver, CLI, and Web Dashboard for the **VortexSeries MONO 65** mechanical keyboard (`VID 0x1A2C`, `PID 0x6180`).
 
-Developed through clean-room reverse engineering of the vendor USB HID feature protocol (`DeviceDriver.exe` / `XYUI.dll`) with Ghidra to provide 100% native control on macOS without requiring Windows or virtual machines. Now powered by a high-performance **Rust** native backend.
+Developed through clean-room reverse engineering of the vendor USB HID feature protocol (`DeviceDriver.exe` / `XYUI.dll`) with Ghidra. Powered by a high-performance, single-binary **Rust** backend.
 
-![Dashboard Preview](preview.png)
+![Dashboard Preview](preview.gif)
 
 ---
 
@@ -15,7 +15,7 @@ Developed through clean-room reverse engineering of the vendor USB HID feature p
 - **Hardware Key Remapping**: Remap keys directly into keyboard firmware staging memory (supports up to 12 custom mappings).
 - **Standalone Tilde (`~`)**: Easily map `Home` or other keys to standalone backtick/tilde (`0x35`), which is typically hidden behind `Fn + Esc` on 65% layouts.
 - **1-Click Mac / Windows Mode Switch**: Instantly toggles between macOS (`Win` = Option, `Alt` = Command) and Windows layout directly from the dashboard header.
-- **Ultra-Lightweight Native Backend**: Rewritten in **Rust** using `hidapi` (direct Apple IOKit integration) and `axum` — consumes **~11 MB RAM** and **0.00% CPU** idle.
+- **Ultra-Lightweight Native Backend**: Written in **Rust** using `hidapi` (direct Apple IOKit integration) and `axum` — consumes only **~11 MB RAM** and **0.00% CPU** idle.
 - **Persistent Storage**: Active remaps are mirrored locally (`active_remaps.json`) for seamless recovery.
 
 ---
@@ -54,27 +54,65 @@ The Web Dashboard also provides a 1-click software toggle in the header that rem
 
 ---
 
-## Installation & Usage
+## Step-by-Step Installation & Getting Started
 
-### Running the Native Rust Controller (Recommended)
+### Method 1: Rust Native Binary (Recommended — Super Fast & Light)
 
+No Node.js required! All you need is the standard Rust compiler.
+
+#### Step 1: Install Rust (if not installed yet)
+Open Terminal and run:
 ```bash
-# Clone the repository
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+source "$HOME/.cargo/env"
+```
+
+#### Step 2: Clone the Repository & Run
+```bash
+# 1. Clone repository
 git clone git@github-personal:rzlfathurrahman/vortexseries-mono65-macos.git
 cd vortexseries-mono65-macos/rust-mono65
 
-# Build and run
+# 2. Compile and launch (optimized release)
 cargo run --release
 ```
 
-Open your browser at **[http://127.0.0.1:7878](http://127.0.0.1:7878)**.
+#### Step 3: Open the Dashboard
+Open your browser and navigate to:
+**[http://127.0.0.1:7878](http://127.0.0.1:7878)**
 
-### Running with Node.js (Alternative)
+---
 
+### Method 2: Node.js (Alternative / Development)
+
+If you prefer using Node.js instead of compiling Rust:
+
+#### Step 1: Install Node.js
+If you don't have Node.js installed, the easiest way on macOS is via [Homebrew](https://brew.sh):
 ```bash
+# Install Homebrew (if not installed)
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+# Install Node.js
+brew install node
+```
+Verify installation:
+```bash
+node -v
+npm -v
+```
+
+#### Step 2: Install Dependencies & Run
+```bash
+cd vortexseries-mono65-macos/legacy-node
+
+# Install node-hid driver dependency
 npm install node-hid
+
+# Start the Node.js GUI server
 node gui.js
 ```
+Open **[http://127.0.0.1:7878](http://127.0.0.1:7878)** in your browser.
 
 ---
 
