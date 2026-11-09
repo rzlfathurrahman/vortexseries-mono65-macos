@@ -299,22 +299,14 @@ struct SetOSModeResponse {
     active_remaps: Vec<(String, String)>,
 }
 
-fn apply_macos_hidutil_os_mode(mode: &str) {
+fn apply_macos_hidutil_os_mode(_mode: &str) {
     #[cfg(target_os = "macos")]
     {
-        if mode == "mac" {
-            // Swap Left GUI (Win) 0x7000000E3 and Left Alt (Option) 0x7000000E2
-            let json = r#"{"UserKeyMapping":[{"HIDKeyboardModifierMappingSrc":30064771299,"HIDKeyboardModifierMappingDst":30064771298},{"HIDKeyboardModifierMappingSrc":30064771298,"HIDKeyboardModifierMappingDst":30064771299}]}"#;
-            let _ = Command::new("hidutil")
-                .args(["property", "--matching", r#"{"VendorID":6700,"ProductID":24960}"#, "--set", json])
-                .output();
-        } else {
-            // Reset mappings to empty
-            let json = r#"{"UserKeyMapping":[]}"#;
-            let _ = Command::new("hidutil")
-                .args(["property", "--matching", r#"{"VendorID":6700,"ProductID":24960}"#, "--set", json])
-                .output();
-        }
+        // Keep hidutil clean as hardware Fn+A already handles OS switch directly
+        let json = r#"{"UserKeyMapping":[]}"#;
+        let _ = Command::new("hidutil")
+            .args(["property", "--matching", r#"{"VendorID":6700,"ProductID":24960}"#, "--set", json])
+            .output();
     }
 }
 
